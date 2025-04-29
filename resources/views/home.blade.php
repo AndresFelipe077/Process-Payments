@@ -30,35 +30,44 @@
                                 </div>
                             </div>
 
+                            @php
+                                use Illuminate\Support\Str;
+                            @endphp
+
                             <div class="row mt-3">
                                 <div class="col">
                                     <label for="payment_platform">Select the desired payment platform:</label>
-                                    <div class="form-group">
-                                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                    <div class="form-group" id="toggler">
+                                        <div class="btn-group" role="group" aria-label="Payment Platforms">
                                             @foreach ($paymentPlatforms as $paymentPlatform)
-                                                <label class="btn btn-outline-secondary rounded m-2 p-1
-                                                    @if(old('payment_platform') == $paymentPlatform->id) active @endif
-                                                ">
-                                                    <input
-                                                        type="radio"
-                                                        name="payment_platform"
-                                                        value="{{ $paymentPlatform->id }}"
-                                                        id="payment_platform_{{ $paymentPlatform->id }}"
-                                                        autocomplete="off"
-                                                        @if(old('payment_platform') == $paymentPlatform->id) checked @endif
-                                                        required
-                                                    >
-                                                    <img
-                                                        class="img-thumbnail"
-                                                        src="{{ asset($paymentPlatform->image) }}"
-                                                        alt="{{ $paymentPlatform->name }}"
-                                                    >
+                                                <input type="radio" class="btn-check" name="payment_platform"
+                                                    id="payment_platform_{{ $paymentPlatform->id }}"
+                                                    value="{{ $paymentPlatform->id }}" autocomplete="off"
+                                                    @if (old('payment_platform') == $paymentPlatform->id) checked @endif required
+                                                    data-bs-toggle="collapse"
+                                                    data-bs-target="#{{ Str::slug($paymentPlatform->name) }}Collapse">
+                                                <label class="btn btn-outline-secondary rounded m-2 p-1"
+                                                    for="payment_platform_{{ $paymentPlatform->id }}">
+                                                    <img class="img-thumbnail" src="{{ asset($paymentPlatform->image) }}"
+                                                        alt="{{ $paymentPlatform->name }}">
                                                 </label>
                                             @endforeach
                                         </div>
+
+                                        @foreach ($paymentPlatforms as $paymentPlatform)
+                                            <div id="{{ Str::slug($paymentPlatform->name) }}Collapse"
+                                                class="collapse @if (old('payment_platform') == $paymentPlatform->id) show @endif"
+                                                data-bs-parent="#toggler">
+                                                @includeIf(
+                                                    'components.' .
+                                                        strtolower($paymentPlatform->name) .
+                                                        '-collapse')
+                                            </div>
+                                        @endforeach
                                     </div>
                                 </div>
                             </div>
+
 
                             <div class="text-center mt-3">
                                 <button type="submit" id="payButton" class="btn btn-primary btn-lg">Pay</button>
