@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Resolvers\PaymentPlatformResolver;
-use App\Services\PaypalService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
