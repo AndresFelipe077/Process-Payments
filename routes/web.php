@@ -8,8 +8,8 @@ Route::get('/', function () {
 });
 
 Route::post('payments/pay', [PaymentController::class, 'pay'])->name('pay');
-Route::post('payments/approval', [PaymentController::class, 'approval'])->name('approval');
-Route::post('payments/cancelled', [PaymentController::class, 'cancelled'])->name('cancelled');
+Route::get('payments/approval', [PaymentController::class, 'approval'])->name('approval');
+Route::get('payments/cancelled', [PaymentController::class, 'cancelled'])->name('cancelled');
 
 Auth::routes();
 
