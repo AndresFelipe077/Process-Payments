@@ -75,6 +75,7 @@ class PaypalService
 
     public function createOrder(float $value, string $currency): mixed
     {
+        $factor = $this->resolveFactor($currency);
         return $this->makeRequest(
             'POST',
             '/v2/checkout/orders',
@@ -84,7 +85,7 @@ class PaypalService
                 'purchase_units' => [
                     0 => [
                         'amount' => [
-                            'value'         => $value,
+                            'value'         => round($value * $factor) / $factor,
                             'currency_code' => strtoupper($currency),
                         ],
                     ]
@@ -113,4 +114,16 @@ class PaypalService
             ],
         );
     }
+
+    public function resolveFactor(string $currency): int
+    {
+        $zeroDecimalCurrencies = ['JPY'];
+
+        if(in_array(strtoupper($currency), $zeroDecimalCurrencies)) {
+            return 1;
+        }
+
+        return 100;
+    }
+
 }

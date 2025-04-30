@@ -17,6 +17,7 @@ class CurrencySeeder extends Seeder
             'usd',
             'eur',
             'gbp',
+            'jpy',
         ];
 
         $now = now();
