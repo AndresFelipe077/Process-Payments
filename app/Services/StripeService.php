@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Traits\ConsumesExternalServices;
@@ -37,14 +39,31 @@ class StripeService
         return "Bearer {$this->secret}";
     }
 
-    public function handlePayment(Request $request): Redirector | RedirectResponse
-    {
+    public function handlePayment(Request $request): Redirector | RedirectResponse {}
 
+    public function handleApproval(): RedirectResponse {}
+
+    public function createIntent(float|int $value, string $currency, string $paymentMethod): mixed
+    {
+        return $this->makeRequest(
+            'POST',
+            '/v1/payment_intents',
+            [],
+            [
+                'amount'              => (int) round($value * $this->resolveFactor($currency)),
+                'currency'            => strtolower($currency),
+                'payment_method'      => $paymentMethod,
+                'confirmation_method' => 'manual',
+            ],
+        );
     }
 
-    public function handleApproval(): RedirectResponse
+    public function confirmPayment(string $paymentIntentId): mixed
     {
-
+        return $this->makeRequest(
+            'POST',
+            "/v1/payment_intents/{$paymentIntentId}/confirm",
+        );
     }
 
     public function resolveFactor(string $currency): int
