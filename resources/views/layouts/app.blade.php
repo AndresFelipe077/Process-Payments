@@ -19,6 +19,7 @@
 
     <!-- Scripts -->
     {{-- @vite(['resources/sass/app.scss', 'resources/js/app.js']) --}}
+    @stack('styles')
 </head>
 
 <body>
@@ -112,8 +113,7 @@
         integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous">
     </script>
 
-    <script src="{{ asset('js/app.js') }}"></script>
-    @stack('script')
+    @stack('scripts')
 </body>
 
 </html>

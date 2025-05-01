@@ -1,0 +1,60 @@
+<?php
+
+namespace App\Services;
+
+use App\Traits\ConsumesExternalServices;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Redirector;
+
+class StripeService
+{
+    use ConsumesExternalServices;
+
+    protected $key;
+    protected $secret;
+    protected $baseUri;
+
+    public function __construct()
+    {
+        $this->baseUri = config('services.stripe.base_uri');
+        $this->key     = config('services.stripe.key');
+        $this->secret  = config('services.stripe.secret');
+    }
+
+    public function resolveAuthorization(array &$queryParams, array &$formParams, array &$headers): void
+    {
+        $headers['Authorization'] = $this->resolveAccessToken();
+    }
+
+    public function decodeResponse($response): mixed
+    {
+        return json_decode($response);
+    }
+
+    public function resolveAccessToken(): string
+    {
+        return "Bearer {$this->secret}";
+    }
+
+    public function handlePayment(Request $request): Redirector | RedirectResponse
+    {
+
+    }
+
+    public function handleApproval(): RedirectResponse
+    {
+
+    }
+
+    public function resolveFactor(string $currency): int
+    {
+        $zeroDecimalCurrencies = ['JPY'];
+
+        if (in_array(strtoupper($currency), $zeroDecimalCurrencies)) {
+            return 1;
+        }
+
+        return 100;
+    }
+}

@@ -22,7 +22,7 @@ class PaypalService
         $this->clientSecret = config('services.paypal.client_secret');
     }
 
-    public function resolveAuthorization(array &$queryParams, array &$formParams, array &$headers)
+    public function resolveAuthorization(array &$queryParams, array &$formParams, array &$headers): void
     {
         $headers['Authorization'] = $this->resolveAccessToken();
     }
