@@ -60,13 +60,19 @@ class StripeService
             $confirmation = $this->confirmPayment($paymentIntentId);
 
             if ($confirmation->status === 'succeeded') {
-                $name     = $confirmation->changes->data[0]->billing_details->name;
+                $name = $confirmation->customer
+                    ?? (
+                        isset($confirmation->changes)
+                        && isset($confirmation->changes->data[0]->billing_details->name)
+                        ? $confirmation->changes->data[0]->billing_details->name
+                        : auth('web')->user()->name
+                    );
                 $currency = strtoupper($confirmation->currency);
                 $amount   = $confirmation->amount / $this->resolveFactor($currency);
 
                 return redirect()
                     ->route('home')
-                    ->withSuccess(['payment' => "Thanks, {{$name}}. We received your {$amount}{$currency} payment."]);
+                    ->withSuccess(['payment' => "Thanks, {$name}. We received your {$amount}{$currency} payment."]);
             }
         }
 
@@ -82,10 +88,11 @@ class StripeService
             '/v1/payment_intents',
             [],
             [
-                'amount'              => (int) round($value * $this->resolveFactor($currency)),
+                'amount'              => round($value * $this->resolveFactor($currency)),
                 'currency'            => strtolower($currency),
                 'payment_method'      => $paymentMethod,
                 'confirmation_method' => 'manual',
+                'payment_method_types' => ['card'],
             ],
         );
     }

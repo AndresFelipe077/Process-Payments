@@ -1,9 +1,5 @@
 @push('style')
     <style type="text/css">
-        /**
-                 * The CSS shown here will not be introduced in the Quickstart guide, but shows
-                 * how you can use CSS to style your Element's container.
-                 */
         .StripeElement {
             box-sizing: border-box;
 
@@ -41,19 +37,15 @@
 
 @push('scripts')
     <script src="https://js.stripe.com/v3/"></script>
+    
     <script>
         const stripe = Stripe("{{ config('services.stripe.key') }}");
         const elements = stripe.elements({
             locale: 'en'
         });
 
-        // try {
         const cardElement = elements.create('card');
         cardElement.mount('#cardElement');
-        //     console.log('Card element montado');
-        // } catch (e) {
-        //     console.error('Error montando el elemento de tarjeta:', e);
-        // }
     </script>
 
     <script>
