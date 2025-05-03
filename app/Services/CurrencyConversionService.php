@@ -34,5 +34,17 @@ class CurrencyConversionService
         return $this->apiKey;
     }
 
-    public function convertCurrency($from, $to) {}
+    public function convertCurrency(string $from, string $to, string|float $amount = 0): mixed
+    {
+        $response = $this->makeRequest(
+            'GET',
+            '',
+            [
+                'from'   => $from,
+                'to'     => $to,
+                'amount' => $amount
+            ]
+        );
+        return $response;
+    }
 }

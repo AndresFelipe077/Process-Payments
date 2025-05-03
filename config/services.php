@@ -2,6 +2,7 @@
 
 use App\Services\PaypalService;
 use App\Services\StripeService;
+use App\Services\MercadoPagoService;
 
 return [
 
@@ -55,6 +56,14 @@ return [
         'key'      => env('STRIPE_KEY'),
         'secret'   => env('STRIPE_SECRET'),
         'class'    => StripeService::class
+    ],
+
+    'mercadopago' => [
+        'base_uri'      => env('MERCADOPAGO_BASE_URI'),
+        'key'           => env('MERCADOPAGO_KEY'),
+        'secret'        => env('MERCADOPAGO_SECRET'),
+        'class'         => MercadoPagoService::class,
+        'base_currency' => 'cop',
     ],
 
 ];
