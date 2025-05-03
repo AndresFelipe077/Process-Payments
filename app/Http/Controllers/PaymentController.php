@@ -6,6 +6,7 @@ use App\Resolvers\PaymentPlatformResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
+use Illuminate\View\View;
 
 class PaymentController extends Controller
 {
@@ -18,7 +19,7 @@ class PaymentController extends Controller
         $this->paymentPlatformResolver = $paymentPlatformResolver;
     }
 
-    public function pay(Request $request): Redirector|RedirectResponse
+    public function pay(Request $request): Redirector|RedirectResponse|View
     {
         $rules = [
             'value'            => ['required', 'numeric', 'min:5'],
@@ -35,7 +36,7 @@ class PaymentController extends Controller
         return $paymentPlatform->handlePayment($request);
     }
 
-    public function approval(): RedirectResponse
+    public function approval(): RedirectResponse|View
     {
         if (session()->has('paymentPlatformId')) {
 

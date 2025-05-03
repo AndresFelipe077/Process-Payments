@@ -8,6 +8,7 @@ use App\Traits\ConsumesExternalServices;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
+use Illuminate\View\View;
 
 class StripeService
 {
@@ -52,12 +53,20 @@ class StripeService
         return redirect()->route('approval');
     }
 
-    public function handleApproval(): RedirectResponse
+    public function handleApproval(): RedirectResponse|View
     {
         if (session()->has('paymentIntentId')) {
             $paymentIntentId = session()->get('paymentIntentId');
 
             $confirmation = $this->confirmPayment($paymentIntentId);
+
+            if ($confirmation->status === 'requires_action') {
+                $clientSecret = $confirmation->client_secret;
+
+                return view('stripe.3d-secure')->with([
+                    'clientSecret' => $clientSecret,
+                ]);
+            }
 
             if ($confirmation->status === 'succeeded') {
                 $name = $confirmation->customer
