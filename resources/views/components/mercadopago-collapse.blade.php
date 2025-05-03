@@ -45,6 +45,21 @@
     </div>
 </div>
 
+<div class="row g-3 mb-3">
+    <div class="col">
+        <small class="form-text text-muted">
+            Your payment will be converted to COP {{ strtoupper(config('services.mercadopago.base_currency')) }}
+        </small>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col">
+        <small class="form-text text-danger" id="paymentErros" role="alert"></small>
+    </div>
+</div>
+
+<input type="hidden" id="cardNetwork" name="card_network">
 
 @push('scripts')
     <script src="https://sdk.mercadopago.com/js/v2"></script>
@@ -62,5 +77,17 @@
         }).catch(function(error) {
             console.error('Error loading document types:', error);
         });
+    </script>
+
+    <script>
+        function setCardNetwork() {
+            const cardNumber = document.getElementById("cardNumber");
+            mp.getPaymentMethod({
+                "bin": cardNumber.value.substring(0, 6)
+            }, function(status, response) {
+                const cardNetwork = document.getElementById("cardNetwork");
+                cardNetwork.value = response[0].id;
+            });
+        }
     </script>
 @endpush
