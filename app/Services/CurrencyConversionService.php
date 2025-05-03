@@ -3,9 +3,7 @@
 namespace App\Services;
 
 use App\Traits\ConsumesExternalServices;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Redirector;
 
 class CurrencyConversionService
 {
@@ -13,6 +11,7 @@ class CurrencyConversionService
 
     protected $baseUri;
     protected $apiKey;
+    private $queryParam = 'access_key';
 
     public function __construct()
     {
@@ -22,7 +21,7 @@ class CurrencyConversionService
 
     public function resolveAuthorization(array &$queryParams, array &$formParams, array &$headers): void
     {
-        $queryParams['apiKey'] = $this->resolveAccessToken();
+        $queryParams[$this->queryParam] = $this->resolveAccessToken();
     }
 
     public function decodeResponse($response): mixed
@@ -35,8 +34,5 @@ class CurrencyConversionService
         return $this->apiKey;
     }
 
-    public function convertCurrency($from, $to)
-    {
-
-    }
+    public function convertCurrency($from, $to) {}
 }
