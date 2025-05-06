@@ -27,5 +27,10 @@ class PaymentPlatformSeeder extends Seeder
             'name'  => 'MercadoPago',
             'image' => 'img/payment-platforms/mercadopago.jpg',
         ]);
+
+        PaymentPlatform::create([
+            'name'  => 'PayU',
+            'image' => 'img/payment-platforms/payu.jpg',
+        ]);
     }
 }
