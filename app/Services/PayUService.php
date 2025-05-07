@@ -12,19 +12,28 @@ class PayUService
     use ConsumesExternalServices;
 
     protected $baseUri;
-    protected $clientId;
-    protected $clientSecret;
+    protected $key;
+    protected $secret;
+    protected $baseCurrency;
+    protected $merchantId;
+    protected $accountId;
+    protected $converter;
 
-    public function __construct()
+    public function __construct(CurrencyConversionService $converter)
     {
-        $this->baseUri      = config('services.paypal.base_uri');
-        $this->clientId     = config('services.paypal.client_id');
-        $this->clientSecret = config('services.paypal.client_secret');
+        $this->baseUri      = config('services.payu.base_uri');
+        $this->key          = config('services.payu.key');
+        $this->secret       = config('services.payu.secret');
+        $this->merchantId   = config('services.payu.merchant_id');
+        $this->accountId    = config('services.payu.account_id');
+        $this->baseCurrency = strtoupper(config('services.payu.base_currency'));
+        $this->converter    = $converter;
     }
 
     public function resolveAuthorization(array &$queryParams, array &$formParams, array &$headers): void
     {
-        $headers['Authorization'] = $this->resolveAccessToken();
+        $formParams['merchant']['apiKey']   = $this->key;
+        $formParams['merchant']['apiLogin'] = $this->secret;
     }
 
     public function decodeResponse($response): mixed
@@ -34,96 +43,78 @@ class PayUService
 
     public function resolveAccessToken(): string
     {
-        $credentials = base64_encode("{$this->clientId}:{$this->clientSecret}");
-        return "Basic {$credentials}";
+        return $this->secret;
     }
 
     public function handlePayment(Request $request): Redirector | RedirectResponse
     {
-        $order = $this->createOrder($request->value, $request->currency);
+        $request->validate([
+            'card_network' => 'required',
+            'card_token'   => 'required',
+            'email'        => 'required',
+        ]);
 
-        $orderLinks = collect($order->links);
+        $payment = $this->createPayment(
+            $request->value,
+            $request->currency,
+            $request->card_network,
+            $request->card_token,
+            $request->email,
+        );
 
-        $approve = $orderLinks->where('rel', 'approve')->first();
+        if ($payment->status === "approved") {
+            $name = $payment->payer->first_name ?? auth('web')->user()->name;
+            $currency = strtoupper($payment->currency_id);
+            $amount   = number_format($payment->transaction_amount, 0, ',', '.');
 
-        session()->put('approvalId', $order->id);
-
-        return redirect($approve->href);
-    }
-
-    public function handleApproval(): RedirectResponse
-    {
-        if (session()->has('approvalId')) {
-            $approvalId = session()->get('approvalId');
-
-            $paymentData = $this->capturePayment($approvalId);
-            $payment     = $paymentData->purchase_units[0]->payments->captures[0]->amount;
-
-            $name     = $paymentData->payer->name->given_name;
-            $amount   = $payment->value;
-            $currency = $payment->currency_code;
+            $originalAmount   = $request->value;
+            $originalCurrency = strtoupper($request->currency);
 
             return redirect()
                 ->route('home')
-                ->withSuccess(['payment' => "Thanks, {$name}. We received your {$amount}{$currency} payment."]);
+                ->withSuccess(['payment' => "Thanks, {$name}. We received your {$originalAmount}{$originalCurrency} payment ({$amount}{$currency})."]);
         }
 
         return redirect()
             ->route('home')
-            ->withErrors('We cannot capture your payment. Try again, please');
+            ->withErrors('We were unable to confirm your payment. Try again, please');
     }
 
-    public function createOrder(float $value, string $currency): mixed
-    {
-        $factor = $this->resolveFactor($currency);
+    public function createPayment(
+        string|int|float $value,
+        string $currency,
+        string $cardNetwork,
+        string $cardToken,
+        string $email,
+        int $installments = 1
+    ): mixed {
         return $this->makeRequest(
             'POST',
-            '/v2/checkout/orders',
+            '/v1/payments',
             [],
             [
-                'intent'         => 'CAPTURE',
-                'purchase_units' => [
-                    0 => [
-                        'amount' => [
-                            'value'         => round($value * $factor) / $factor,
-                            'currency_code' => strtoupper($currency),
-                        ],
-                    ]
+                'payer' => [
+                    'email' => $email,
                 ],
-                'application_context' => [
-                    'brand_name'           => config('app.name'),
-                    'shipping_preferences' => 'NO_SHIPPING',
-                    'return_url'           => route('approval'),
-                    'cancel_url'           => route('cancelled'),
-                ]
+                'binary_mode'          => true,
+                'transaction_amount'   => round($value * $this->resolveFactor($currency)),
+                'payment_method_id'    => $cardNetwork,
+                'token'                => $cardToken,
+                'installments'         => $installments,
+                'statement_descriptor' => config('app.name'),
             ],
             [],
-            $isJsonRequest = true
-        );
-    }
-
-    public function capturePayment(string|int $approvalId): mixed
-    {
-        return $this->makeRequest(
-            'POST',
-            "/v2/checkout/orders/{$approvalId}/capture",
-            [],
-            [],
-            [
-                'Content-Type' => 'application/json',
-            ],
+            isJsonRequest: true
         );
     }
 
     public function resolveFactor(string $currency): int
     {
-        $zeroDecimalCurrencies = ['JPY'];
-
-        if(in_array(strtoupper($currency), $zeroDecimalCurrencies)) {
-            return 1;
-        }
-
-        return 100;
+        return $this->converter->convertCurrency($currency, $this->baseCurrency);
     }
 
+    public function generateSignature(string $referenceCode, string|int|float $value): string
+    {
+        return md5("{$this->key}~{$this->merchantId}~{$referenceCode}~{$value}~{$this->baseCurrency}");
+    }
 }
