@@ -6,6 +6,7 @@ use App\Traits\ConsumesExternalServices;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
+use Illuminate\Support\Str;
 
 class PayUService
 {
@@ -83,27 +84,74 @@ class PayUService
     public function createPayment(
         string|int|float $value,
         string $currency,
-        string $cardNetwork,
-        string $cardToken,
+        string $name,
         string $email,
-        int $installments = 1
+        string $card,
+        string $cvc,
+        string $year,
+        string $month,
+        string $network,
+        int $installments = 1,
+        string $paymentCountry = 'CO',
     ): mixed {
+
+        $language = config('app.locale');
+
         return $this->makeRequest(
             'POST',
-            '/v1/payments',
+            '/payments-api/4.0/service.cgi',
             [],
             [
-                'payer' => [
-                    'email' => $email,
+                'languague'   => $language,
+                'command'     => 'SUBMIT_TRANSACTION',
+                'test'        => false,
+                'transaction' => [
+                    'type'            => 'AUTHORIZATION_AND_CAPTURE',
+                    'paymentMethod'   => strtoupper($network),
+                    'paymentCountry'  => strtoupper($paymentCountry),
+                    'deviceSessionId' => session()->getId(),
+                    'ipAddress'       => request()->ip(),
+                    'userAgent'       => request()->header('User-Agent'),
+                    'creditCard'    => [
+                        'number'         => $card,
+                        'securityCode'   => $cvc,
+                        'expirationDate' => "{$year}/{$month}",
+                        'name'           => 'APPROVED',
+                    ],
+                    'extraParamenters' => [
+                        'INSTALLMENTS_NUMBER' => $installments,
+                    ],
+                    'payer' => [
+                        'fullName'     => $name,
+                        'emailAddress' => $email,
+                    ],
+                    'order' => [
+                        'accountId'     => $this->accountId,
+                        'referenceCode' => $reference = Str::random(12),
+                        'description'   => 'Testing PayU',
+                        'language'      => $language,
+                        'signature'     => $this->generateSignature($reference, $value = round($value * $this->resolveFactor($currency))),
+                        'additionalValues' => [
+                            'TX_VALUE' => [
+                                'value'    => $value,
+                                'currency' => $this->baseCurrency,
+
+                            ],
+                        ],
+                        'buyer' => [
+                            'fullName'     => $name,
+                            'emailAddress' => $email,
+                            'shippingAddress' => [
+                                'street1' => '',
+                                'city'    => '',
+                            ]
+                        ]
+                    ]
                 ],
-                'binary_mode'          => true,
-                'transaction_amount'   => round($value * $this->resolveFactor($currency)),
-                'payment_method_id'    => $cardNetwork,
-                'token'                => $cardToken,
-                'installments'         => $installments,
-                'statement_descriptor' => config('app.name'),
             ],
-            [],
+            [
+                'Accept' => 'application/json',
+            ],
             isJsonRequest: true
         );
     }
