@@ -38,7 +38,7 @@ class CurrencyConversionService
     {
         $response = $this->makeRequest(
             'GET',
-            '',
+            '/v1/convert',
             [
                 'from'   => $from,
                 'to'     => $to,
