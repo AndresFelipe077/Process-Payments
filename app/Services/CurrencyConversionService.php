@@ -47,4 +47,46 @@ class CurrencyConversionService
         );
         return $response;
     }
+
+    // public function convertCurrency(string $from, string $to, string|float $amount = 1): mixed
+    // {
+    //     $response = $this->makeRequest(
+    //         'GET',
+    //         '/v1/latest',
+    //         [
+    //             'access_key' => env('EXCHANGERATES_API_KEY'),
+    //             'symbols' => strtoupper($from) . ',' . strtoupper($to)
+    //         ]
+    //     );
+
+    //     // Validar éxito
+    //     if (!$response['success'] ?? false) {
+    //         return [
+    //             'error' => 'No se pudo obtener tasas de cambio',
+    //             'details' => $response['error'] ?? null,
+    //         ];
+    //     }
+
+    //     $rates = $response['rates'];
+
+    //     if (!isset($rates[$from]) || !isset($rates[$to])) {
+    //         return [
+    //             'error' => 'Monedas no válidas',
+    //             'available_rates' => array_keys($rates),
+    //         ];
+    //     }
+
+    //     // Cálculo del factor FROM → TO (si base es EUR)
+    //     $factor = $rates[$to] / $rates[$from];
+    //     $converted = $amount * $factor;
+
+    //     return [
+    //         'success' => true,
+    //         'from' => $from,
+    //         'to' => $to,
+    //         'rate' => round($factor, 6),
+    //         'amount' => $amount,
+    //         'converted' => round($converted, 2)
+    //     ];
+    // }
 }

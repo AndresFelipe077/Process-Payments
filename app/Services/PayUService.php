@@ -50,20 +50,28 @@ class PayUService
     public function handlePayment(Request $request): Redirector | RedirectResponse
     {
         $request->validate([
-            'card_network' => 'required',
-            'card_token'   => 'required',
-            'email'        => 'required',
+            'payu_card' => 'required',
+            'payu_cvc' => 'required',
+            'payu_year' => 'required',
+            'payu_month' => 'required',
+            'payu_network' => 'required',
+            'payu_name' => 'required',
+            'payu_email' => 'required',
         ]);
 
         $payment = $this->createPayment(
             $request->value,
             $request->currency,
-            $request->card_network,
-            $request->card_token,
-            $request->email,
+            $request->payu_name,
+            $request->payu_email,
+            $request->payu_card,
+            $request->payu_cvc,
+            $request->payu_year,
+            $request->payu_month,
+            $request->payu_network,
         );
 
-        if ($payment->status === "approved") {
+        if ($payment->transactionResponse->state === "APPROVED") {
             $name = $payment->payer->first_name ?? auth('web')->user()->name;
             $currency = strtoupper($payment->currency_id);
             $amount   = number_format($payment->transaction_amount, 0, ',', '.');
