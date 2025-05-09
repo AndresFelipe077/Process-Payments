@@ -2,8 +2,9 @@
 
 namespace App\Services;
 
-use App\Traits\ConsumesExternalServices;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use App\Traits\ConsumesExternalServices;
 
 class CurrencyConversionService
 {
@@ -34,59 +35,47 @@ class CurrencyConversionService
         return $this->apiKey;
     }
 
-    public function convertCurrency(string $from, string $to, string|float $amount = 0): mixed
-    {
-        $response = $this->makeRequest(
-            'GET',
-            '/v1/convert',
-            [
-                'from'   => $from,
-                'to'     => $to,
-                'amount' => $amount
-            ]
-        );
-        return $response;
-    }
-
-    // public function convertCurrency(string $from, string $to, string|float $amount = 1): mixed
+    // public function convertCurrency(string $from, string $to, string|float $amount = 0): mixed
     // {
     //     $response = $this->makeRequest(
     //         'GET',
-    //         '/v1/latest',
+    //         '/v1/convert',
     //         [
-    //             'access_key' => env('EXCHANGERATES_API_KEY'),
-    //             'symbols' => strtoupper($from) . ',' . strtoupper($to)
+    //             'from'   => $from,
+    //             'to'     => $to,
+    //             'amount' => $amount
     //         ]
     //     );
-
-    //     // Validar éxito
-    //     if (!$response['success'] ?? false) {
-    //         return [
-    //             'error' => 'No se pudo obtener tasas de cambio',
-    //             'details' => $response['error'] ?? null,
-    //         ];
-    //     }
-
-    //     $rates = $response['rates'];
-
-    //     if (!isset($rates[$from]) || !isset($rates[$to])) {
-    //         return [
-    //             'error' => 'Monedas no válidas',
-    //             'available_rates' => array_keys($rates),
-    //         ];
-    //     }
-
-    //     // Cálculo del factor FROM → TO (si base es EUR)
-    //     $factor = $rates[$to] / $rates[$from];
-    //     $converted = $amount * $factor;
-
-    //     return [
-    //         'success' => true,
-    //         'from' => $from,
-    //         'to' => $to,
-    //         'rate' => round($factor, 6),
-    //         'amount' => $amount,
-    //         'converted' => round($converted, 2)
-    //     ];
+    //     return $response;
     // }
+
+    public function convertCurrency(string $from, string $to): int|float|array
+    {
+        $from = strtoupper($from);
+        $response = $this->makeRequest(
+            'GET',
+            '/v1/latest',
+            []
+        );
+
+        if (!($response->success ?? false)) {
+            return [
+                'error'   => 'No se pudo obtener tasas de cambio',
+                'details' => $response->error ?? null,
+            ];
+        }
+
+        $rates = (array) $response->rates;
+
+        if (!isset($rates[$from]) || !isset($rates[$to]) || $rates[$from] == 0) {
+            return [
+                'error'           => 'Monedas no válidas o divisor es cero',
+                'available_rates' => array_keys($rates),
+            ];
+        }
+
+        $factor = $rates[$to] / $rates[$from];
+
+        return round($factor, 6);
+    }
 }
