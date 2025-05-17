@@ -23,4 +23,9 @@ class Subscription extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function isActive(): bool
+    {
+        return $this->active_until->gt(now());
+    }
+
 }
