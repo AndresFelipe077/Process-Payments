@@ -14,8 +14,9 @@ class PaymentPlatformSeeder extends Seeder
     public function run(): void
     {
         PaymentPlatform::create([
-            'name'  => 'Paypal',
-            'image' => 'img/payment-platforms/paypal.jpg',
+            'name'                 => 'Paypal',
+            'image'                => 'img/payment-platforms/paypal.jpg',
+            'subscription_enabled' => true
         ]);
 
         PaymentPlatform::create([

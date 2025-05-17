@@ -21,10 +21,10 @@ class SubscriptionController extends Controller
 
     public function show(): View
     {
-        $paymentPlaftforms = PaymentPlatform::/*where('subscriptions_enabled', true)->*/get();
+        $paymentPlatforms = PaymentPlatform::where('subscriptions_enabled', true)->get();
         return view('subscribe')->with([
             'plans'            => Plan::all(),
-            'paymentPlatforms' => $paymentPlaftforms
+            'paymentPlatforms' => $paymentPlatforms
         ]);
     }
 

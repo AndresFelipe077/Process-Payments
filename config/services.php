@@ -49,7 +49,11 @@ return [
         'base_uri'      => env('PAYPAL_BASE_URI'),
         'client_id'     => env('PAYPAL_CLIENT_ID'),
         'client_secret' => env('PAYPAL_CLIENT_SECRET'),
-        'class'         => PaypalService::class
+        'class'         => PaypalService::class,
+        'plans'         => [
+            'montly' => env('PAYPAL_MONTLY_PLAN'),
+            'yearly' => env('PAYPAL_YEARLY_PLAN'),
+        ],
     ],
 
     'payu' => [
