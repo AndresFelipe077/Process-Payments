@@ -6,6 +6,7 @@ use App\Models\Plan;
 use Illuminate\Http\Request;
 use App\Models\PaymentPlatform;
 use App\Resolvers\PaymentPlatformResolver;
+use Illuminate\Contracts\View\View;
 
 class SubscriptionController extends Controller
 {
@@ -18,7 +19,7 @@ class SubscriptionController extends Controller
         $this->paymentPlatformResolver = $paymentPlatformResolver;
     }
 
-    public function show()
+    public function show(): View
     {
         $paymentPlaftforms = PaymentPlatform::/*where('subscriptions_enabled', true)->*/get();
         return view('subscribe')->with([
@@ -26,7 +27,24 @@ class SubscriptionController extends Controller
             'paymentPlatforms' => $paymentPlaftforms
         ]);
     }
-    public function store() {}
+
+    public function store(Request $request)
+    {
+        $rules = [
+            'plan'             => ['required', 'exists:plans,slug'],
+            'payment_platform' => ['required', 'exists:payment_platforms,id'],
+        ];
+
+        $request->validate($rules);
+
+        $paymentPlatform = $this->paymentPlatformResolver->resolveService($request->payment_platform);
+
+        session()->put('subscriptionPlatformId', $request->payment_platform);
+
+        return $paymentPlatform->handleSubscription($request);
+    }
+
     public function approval() {}
+
     public function cancelled() {}
 }

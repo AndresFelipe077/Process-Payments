@@ -21,17 +21,17 @@
                                     <div class="form-group" id="toggler">
                                         <div class="btn-group" role="group" aria-label="Payment Platforms">
                                             @foreach ($plans as $plan)
-                                                <input type="radio" class="btn-check" name="payment_platform"
-                                                    id="payment_platform_{{ $plan->id }}" value="{{ $plan->slug }}"
-                                                    autocomplete="off" @if (old('payment_platform') == $plan->id) checked @endif
-                                                    required data-bs-toggle="collapse"
-                                                    data-bs-target="#{{ Str::slug($plan->name) }}Collapse">
-                                                <p class="h2 font-weight-bold text-capitalize">
-                                                    {{ $plan->slug }}
-                                                </p>
-                                                <p class="display-4 text-capitalize">
-                                                    {{ $plan->visual_price }}
-                                                </p>
+                                                <label class="btn btn-outline-info rounded m-2 p-3">
+                                                    <input type="radio" name="plan" value="{{ $plan->slug }}"
+                                                        required>
+                                                    <p class="h2 font-weight-bold text-capitalize">
+                                                        {{ $plan->slug }}
+                                                    </p>
+
+                                                    <p class="display-4 text-capitalize">
+                                                        {{ $plan->visual_price }}
+                                                    </p>
+                                                </label>
                                             @endforeach
                                         </div>
                                     </div>
