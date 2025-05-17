@@ -2,23 +2,23 @@
 
 <div class="row g-3 mb-3">
     <div class="col-md-4">
-        <input class="form-control" type="text" name="card" placeholder="Card Number">
+        <input class="form-control" type="text" name="payu_card" placeholder="Card Number">
     </div>
 
     <div class="col-md-2">
-        <input class="form-control" type="text" name="cvc" placeholder="CVC">
+        <input class="form-control" type="text" name="payu_cvc" placeholder="CVC">
     </div>
 
     <div class="col-md-1">
-        <input class="form-control" type="text" name="month" placeholder="MM" maxlength="2">
+        <input class="form-control" type="text" name="payu_month" placeholder="MM" maxlength="2">
     </div>
 
     <div class="col-md-1">
-        <input class="form-control" type="text" name="year" placeholder="YY" maxlength="2">
+        <input class="form-control" type="text" name="payu_year" placeholder="YY" maxlength="2">
     </div>
 
     <div class="col-md-2">
-        <select name="network" class="form-select" id="">
+        <select name="payu_network" class="form-select" id="">
             <option value="">Select</option>
             <option value="visa">VISA</option>
             <option value="amex">AMEX</option>
@@ -30,11 +30,11 @@
 
 <div class="row g-3 mb-3">
     <div class="col-md-5">
-        <input class="form-control" type="text" name="name" placeholder="Cardholder Name">
+        <input class="form-control" type="text" name="payu_name" placeholder="Cardholder Name">
     </div>
 
     <div class="col-md-5">
-        <input class="form-control" type="email" name="email" placeholder="email@example.com">
+        <input class="form-control" type="email" name="payu_email" placeholder="email@example.com">
     </div>
 </div>
 

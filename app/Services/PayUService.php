@@ -2,11 +2,12 @@
 
 namespace App\Services;
 
-use App\Traits\ConsumesExternalServices;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Http\RedirectResponse;
+use App\Traits\ConsumesExternalServices;
 
 class PayUService
 {
@@ -50,13 +51,13 @@ class PayUService
     public function handlePayment(Request $request): Redirector | RedirectResponse
     {
         $request->validate([
-            'payu_card' => 'required',
-            'payu_cvc' => 'required',
-            'payu_year' => 'required',
-            'payu_month' => 'required',
+            'payu_card'    => 'required',
+            'payu_cvc'     => 'required',
+            'payu_year'    => 'required',
+            'payu_month'   => 'required',
             'payu_network' => 'required',
-            'payu_name' => 'required',
-            'payu_email' => 'required',
+            'payu_name'    => 'required',
+            'payu_email'   => 'required',
         ]);
 
         $payment = $this->createPayment(
@@ -71,22 +72,21 @@ class PayUService
             $request->payu_network,
         );
 
-        if ($payment->transactionResponse->state === "APPROVED") {
-            $name = $payment->payer->first_name ?? auth('web')->user()->name;
-            $currency = strtoupper($payment->currency_id);
-            $amount   = number_format($payment->transaction_amount, 0, ',', '.');
+        Log::debug(print_r($payment, true));
 
-            $originalAmount   = $request->value;
-            $originalCurrency = strtoupper($request->currency);
+        if ($payment->transactionResponse->state === "APPROVED") {
+            $name     = $payment->payu_name ?? auth('web')->user()->name;
+            $currency = strtoupper($payment->value);
+            $amount   = strtoupper($request->currency);
 
             return redirect()
                 ->route('home')
-                ->withSuccess(['payment' => "Thanks, {$name}. We received your {$originalAmount}{$originalCurrency} payment ({$amount}{$currency})."]);
+                ->withSuccess(['payment' => "Thanks, {$name}. We received your {$amount}{$currency} payment."]);
         }
 
         return redirect()
             ->route('home')
-            ->withErrors('We were unable to confirm your payment. Try again, please');
+            ->withErrors('We were unable to process your payment. Check your details and try again, please');
     }
 
     public function createPayment(
