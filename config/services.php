@@ -70,7 +70,11 @@ return [
         'base_uri' => env('STRIPE_BASE_URI'),
         'key'      => env('STRIPE_KEY'),
         'secret'   => env('STRIPE_SECRET'),
-        'class'    => StripeService::class
+        'class'    => StripeService::class,
+        'plans'         => [
+            'montly' => env('STRIPE_MONTLY_PLAN'),
+            'yearly' => env('STRIPE_YEARLY_PLAN'),
+        ],
     ],
 
     'mercadopago' => [
