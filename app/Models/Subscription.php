@@ -9,8 +9,8 @@ class Subscription extends Model
 {
     protected $guarded = ['id'];
 
-    protected $dates = [
-        'active_until'
+    protected $casts = [
+        'active_until' => 'datetime',
     ];
 
     public function plan(): BelongsTo
@@ -27,5 +27,4 @@ class Subscription extends Model
     {
         return $this->active_until->gt(now());
     }
-
 }
