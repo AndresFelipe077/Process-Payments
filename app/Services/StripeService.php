@@ -17,12 +17,14 @@ class StripeService
     protected $key;
     protected $secret;
     protected $baseUri;
+    protected $plans;
 
     public function __construct()
     {
         $this->baseUri = config('services.stripe.base_uri');
         $this->key     = config('services.stripe.key');
         $this->secret  = config('services.stripe.secret');
+        $this->plans   = config('services.stripe.plans');
     }
 
     public function resolveAuthorization(array &$queryParams, array &$formParams, array &$headers): void
@@ -90,6 +92,13 @@ class StripeService
             ->withErrors('We were unable to confirm your payment. Try again, please');
     }
 
+    public function handleSubscription(Request $request): Redirector | RedirectResponse
+    {
+        dd($this->plans, $request->all());
+
+        return redirect()->route('approval');
+    }
+
     public function createIntent(float|int|string $value, string $currency, string $paymentMethod): mixed
     {
         return $this->makeRequest(
@@ -111,6 +120,41 @@ class StripeService
         return $this->makeRequest(
             'POST',
             "/v1/payment_intents/{$paymentIntentId}/confirm",
+        );
+    }
+
+    public function createCustomer(string $name, string $email, string $paymentMethod): mixed
+    {
+        return $this->makeRequest(
+            'POST',
+            '/v1/customers',
+            [],
+            [
+                'name'           => $name,
+                'email'          => $email,
+                'payment_method' => $paymentMethod,
+            ],
+        );
+    }
+
+    public function createSubscription(
+        string $customerId,
+        string $paymentMethod,
+        string $priceId
+    ): mixed {
+        return $this->makeRequest(
+            'POST',
+            '/v1/subscriptions',
+            [],
+            [
+                'customer' => $customerId,
+                'items'    => [
+                    [
+                        'price' => $priceId,
+                    ],
+                ],
+                'default_payment_method' => $paymentMethod,
+            ],
         );
     }
 
