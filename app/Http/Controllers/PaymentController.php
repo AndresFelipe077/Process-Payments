@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\Unsubscribed;
 use App\Resolvers\PaymentPlatformResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,7 +16,7 @@ class PaymentController extends Controller
 
     public function __construct(PaymentPlatformResolver $paymentPlatformResolver)
     {
-        $this->middleware('auth');
+        $this->middleware(['auth', Unsubscribed::class]);
         $this->paymentPlatformResolver = $paymentPlatformResolver;
     }
 
@@ -32,6 +33,10 @@ class PaymentController extends Controller
         $paymentPlatform = $this->paymentPlatformResolver->resolveService($request->payment_platform);
 
         session()->put('paymentPlatformId', $request->payment_platform);
+
+        if ($request->user()->hasActiveSubscription()) {
+            $request->value = round($request->value * 0.9, 2);
+        }
 
         return $paymentPlatform->handlePayment($request);
     }
