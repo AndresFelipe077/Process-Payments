@@ -75,9 +75,21 @@ class PaypalService
             ->withErrors('We cannot capture your payment. Try again, please');
     }
 
-    public function handleSubscription(Request $request)
+    public function handleSubscription(Request $request): Redirector | RedirectResponse
     {
-        dd($this->plans);
+        $subscription = $this->createSubscription(
+            $request->plan,
+            $request->user()->name,
+            $request->user()->email
+        );
+
+        $subcriptionLinks = collect($subscription->links);
+
+        $approve = $subcriptionLinks->where('rel', 'approve')->first();
+
+        session()->put('subscriptionId', $subscription->id);
+
+        return redirect($approve->href);
     }
 
     public function createOrder(float $value, string $currency): mixed
@@ -122,15 +134,41 @@ class PaypalService
         );
     }
 
+    public function createSubscription($planSlug, $name, $email): mixed
+    {
+        return $this->makeRequest(
+            'POST',
+            '/v1/billing/subscriptions',
+            [],
+            [
+                'plan_id' => $this->plans[$planSlug],
+                'subscriber' => [
+                    'name' => [
+                        'given_name' => $name,
+                    ],
+                    'email_address'  => $email,
+                ],
+                'application_context' => [
+                    'brand_name'          => config('app.name'),
+                    'shipping_preference' => 'NO_SHIPPING',
+                    'user_action'         => 'SUBSCRIBE_NOW',
+                    'return_url'          => route('subscribe.approval', ['plan' => $planSlug]),
+                    'cancel_url'          => route('subscribe.cancelled'),
+                ]
+            ],
+            [],
+            $isJsonRequest = true,
+        );
+    }
+
     public function resolveFactor(string $currency): int
     {
         $zeroDecimalCurrencies = ['JPY'];
 
-        if(in_array(strtoupper($currency), $zeroDecimalCurrencies)) {
+        if (in_array(strtoupper($currency), $zeroDecimalCurrencies)) {
             return 1;
         }
 
         return 100;
     }
-
 }
