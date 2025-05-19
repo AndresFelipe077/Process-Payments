@@ -92,7 +92,7 @@ class PaypalService
         return redirect($approve->href);
     }
 
-    public function validateSubscription(Request $request)
+    public function validateSubscription(Request $request): bool
     {
         if (session()->has('subscriptionId')) {
             $subscriptionId = session()->get('subscriptionId');
